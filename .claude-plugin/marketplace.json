@@ -2,7 +2,8 @@
   "name": "agent-workflow-skills",
   "description": "Full-cycle agent workflow skills: session context, task management, ADRs, quality gates, Codex review loop.",
   "owner": {
-    "name": "pfk"
+    "name": "David Mendez",
+    "email": "me@davidmendez.dev"
   },
   "plugins": [
     {

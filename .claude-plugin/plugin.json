@@ -3,11 +3,12 @@
   "description": "Full-cycle agent workflow: session context loading, requirements interview, task tracking, ADRs, quality gates, and Codex review loop.",
   "version": "1.0.0",
   "author": {
-    "name": "pfk",
-    "url": "https://github.com/pfk"
+    "name": "David Mendez",
+    "email": "me@davidmendez.dev",
+    "url": "https://github.com/djm204"
   },
-  "homepage": "https://github.com/pfk/agent-workflow-skills",
-  "repository": "https://github.com/pfk/agent-workflow-skills",
+  "homepage": "https://github.com/djm204/agent-workflow-skills",
+  "repository": "https://github.com/djm204/agent-workflow-skills",
   "license": "MIT",
   "hooks": {
     "SessionStart": [

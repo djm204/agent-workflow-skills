@@ -20,7 +20,7 @@ Add to `~/.claude/settings.json`:
     "agent-workflow-skills": {
       "source": {
         "source": "git",
-        "url": "https://github.com/pfk/agent-workflow-skills.git"
+        "url": "https://github.com/djm204/agent-workflow-skills.git"
       }
     }
   }

@@ -1,0 +1,15 @@
+{
+  "name": "agent-workflow-skills",
+  "description": "Full-cycle agent workflow skills: session context, task management, ADRs, quality gates, Codex review loop.",
+  "owner": {
+    "name": "pfk"
+  },
+  "plugins": [
+    {
+      "name": "agent-workflow",
+      "description": "Full-cycle agent workflow: session context loading, requirements interview, task tracking, ADRs, quality gates, and Codex review loop.",
+      "version": "1.0.0",
+      "source": "./"
+    }
+  ]
+}

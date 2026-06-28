@@ -49,7 +49,17 @@ Do not report a task complete until every gate below is checked. Work through th
 7. Update any public API docs or README if public interface changed
 8. **Push PR** (`gh pr create` if no PR exists, else `git push`)
 
-## Codex Review Loop (3 rounds, mandatory)
+## Codex Review Loop (mandatory)
+
+**Prefer a dedicated loop skill if one is available.** Before running the fallback below,
+check whether a `codex-review-loop` skill is installed (e.g. from the `codex-review`
+plugin). If it is, **invoke it** to drive the review on the PR and skip the inline fallback —
+it is the source of truth for the mechanics (three-channel polling, the terminal
+"no major issues" signal, thread resolution) and stays current as Codex changes.
+
+Only if no such skill is available, fall back to the inline procedure below.
+
+### Fallback: inline 3-round loop
 
 Repeat the following 3 times before reporting done:
 

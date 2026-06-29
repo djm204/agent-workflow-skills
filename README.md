@@ -4,11 +4,11 @@ Claude Code plugin providing a full-cycle agent workflow: session context loadin
 
 ## Skills
 
-| Skill | Trigger | Purpose |
-|-------|---------|---------|
-| `session-start` | Auto (SessionStart hook) | Load git state, memory, WIP tasks, lessons |
-| `task-start` | Before any implementation | Route to dive-in, recovery, or requirements interview |
-| `task-end` | Before marking done | Quality gates, docs, ADR, 3× Codex review loop |
+| Skill | Trigger | Purpose | Docs |
+|-------|---------|---------|------|
+| `session-start` | Auto (SessionStart hook) | Load git state, memory, WIP tasks, lessons | [docs](docs/skills/session-start.md) · [SKILL.md](skills/session-start/SKILL.md) |
+| `task-start` | Before any implementation | Route to dive-in, recovery, or requirements interview | [docs](docs/skills/task-start.md) · [SKILL.md](skills/task-start/SKILL.md) |
+| `task-end` | Before marking done | Quality gates, docs, ADR, Codex review loop (prefers the `codex-review-loop` skill; inline 3-round fallback) | [docs](docs/skills/task-end.md) · [SKILL.md](skills/task-end/SKILL.md) |
 
 ## Install
 
@@ -43,4 +43,4 @@ Every session: git state + memory index + WIP tasks + active lessons → compact
 - **No spec** → 7-question requirements interview → plan → ADR if needed → approval
 
 ### Task End
-Quality gates → docs updates → ADR → ramp-up doc → PR → 3× `@codex review` loop (address all threads each round).
+Quality gates → docs updates → ADR → ramp-up doc → PR → Codex review loop. The loop prefers a `codex-review-loop` skill if installed (the [codex-review](https://github.com/djm204/codex-review) plugin), and otherwise falls back to an inline 3× `@codex review` loop (address all threads each round).

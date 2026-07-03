@@ -20,8 +20,12 @@ Before reporting a task complete, committing, or merging.
    `docs/AGENT_RAMP_UP.md` on structural change; update README/API docs on interface change;
    always check off `tasks/todo.md` (+ a `## Review` section) and append to
    `tasks/lessons.md` if a correction occurred.
-3. **Push** — open a PR if none exists, else push.
-4. **Codex review loop** — drive a Codex review on the PR to a clean pass.
+3. **Documentation janitor** — a drift sweep for docs the change *invalidated* rather than
+   touched: stale descriptions, dead links and moved file paths, index/manifest entries gone
+   missing or orphaned, and stale versions/dates. Findings are fixed, or flagged when out of
+   scope — never left silent.
+4. **Push** — open a PR if none exists, else push.
+5. **Codex review loop** — drive a Codex review on the PR to a clean pass.
 
 ## Codex review loop (delegating)
 

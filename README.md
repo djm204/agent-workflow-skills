@@ -8,7 +8,7 @@ Claude Code plugin providing a full-cycle agent workflow: session context loadin
 |-------|---------|---------|------|
 | `session-start` | Auto (SessionStart hook) | Load git state, memory, WIP tasks, lessons | [docs](docs/skills/session-start.md) · [SKILL.md](skills/session-start/SKILL.md) |
 | `task-start` | Before any implementation | Route to dive-in, recovery, or requirements interview | [docs](docs/skills/task-start.md) · [SKILL.md](skills/task-start/SKILL.md) |
-| `task-end` | Before marking done | Quality gates, docs, ADR, Codex review loop (prefers the `codex-review-loop` skill; inline 3-round fallback) | [docs](docs/skills/task-end.md) · [SKILL.md](skills/task-end/SKILL.md) |
+| `task-end` | Before marking done | Quality gates, docs, doc-drift janitor, ADR, Codex review loop (prefers the `codex-review-loop` skill; inline 3-round fallback) | [docs](docs/skills/task-end.md) · [SKILL.md](skills/task-end/SKILL.md) |
 
 ## Install
 

@@ -1,6 +1,6 @@
 ---
 name: task-end
-description: Run before marking any task done. Enforces quality gates, documentation updates, ADR completion, and the 3-round Codex review loop.
+description: Run before marking any task done. Enforces quality gates, documentation updates, a documentation-drift janitor sweep, ADR completion, and the 3-round Codex review loop.
 ---
 
 # Task End Protocol
@@ -38,6 +38,27 @@ Do not report a task complete until every gate below is checked. Work through th
 | Active decisions + constraints | Non-obvious choices, forbidden patterns, linked ADRs |
 | Current work in progress | What's being built, what's blocked, what's next |
 
+## Documentation Janitor (drift sweep)
+
+The gates above ensure docs *you touched* got updated. The janitor is the opposite pass:
+sweep for docs that went **stale, dangling, or orphaned** because of this change — the rot a
+per-change checklist misses. Run it after the doc gates, before pushing.
+
+Scope the sweep to what this change could have invalidated (files changed + docs that
+reference them). Do not audit the whole tree unless the change is repo-wide.
+
+| Check | What to look for | Action |
+|-------|------------------|--------|
+| Drift | Docs describing code/behavior/flags this change altered (READMEs, ramp-up, ADRs, inline docs, code comments, examples) | Update to match reality, or flag if out of scope |
+| Dead references | Broken internal links, moved/renamed/deleted file paths, stale anchors, dangling `[[wikilinks]]`, code snippets citing removed symbols | Fix the reference or remove it |
+| Index reconciliation | New public modules/commands/skills missing from their index (key-file map, README TOC, marketplace/plugin manifest); index entries pointing at things that no longer exist | Add missing entries, prune orphaned ones |
+| Stale metadata | Version numbers, dates, counts, "as of" statements, badges rendered wrong by this change | Update to current values |
+| Duplication | The same fact now stated in two places that disagree after the change | Collapse to one source of truth, link the rest |
+
+Report what the sweep found (fixed vs. deferred). If a doc is stale but fixing it is out of
+scope, note it explicitly rather than silently leaving it — silence reads as "verified
+current."
+
 ## Completion Steps (in order)
 
 1. Run all quality gates — fix any failures before continuing
@@ -47,7 +68,8 @@ Do not report a task complete until every gate below is checked. Work through th
 5. Write ADR if architectural decision was made (check task-start interview notes)
 6. Update `docs/AGENT_RAMP_UP.md` if structure or key files changed
 7. Update any public API docs or README if public interface changed
-8. **Push PR** (`gh pr create` if no PR exists, else `git push`)
+8. Run the **Documentation Janitor** drift sweep — fix or flag every finding
+9. **Push PR** (`gh pr create` if no PR exists, else `git push`)
 
 ## Codex Review Loop (mandatory)
 

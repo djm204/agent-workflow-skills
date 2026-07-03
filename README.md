@@ -32,6 +32,30 @@ Then install via Claude Code:
 /plugins install agent-workflow@agent-workflow-skills
 ```
 
+
+## Hermes Agent install
+
+This repository also publishes Hermes-compatible skill packages under `skills/`:
+
+| Skill | Purpose |
+|-------|---------|
+| `codex-review-loop` | Drive the GitHub `chatgpt-codex-connector` review loop until a PR is clean. |
+| `resolve-issues` | Resolve GitHub issues priority-first with one branch/PR per issue and Codex review gating. |
+| `hermes-session-start` | Start/recover Hermes sessions with compact project and work-state context. |
+| `hermes-task-start` | Kick off non-trivial Hermes implementation tasks with the right planning/recovery path. |
+| `hermes-task-end` | Run Hermes task completion quality gates before claiming done. |
+
+Install from Hermes with:
+
+```bash
+hermes skills tap add djm204/agent-workflow-skills
+hermes skills install djm204/agent-workflow-skills/skills/codex-review-loop --yes
+hermes skills install djm204/agent-workflow-skills/skills/resolve-issues --yes
+hermes skills install djm204/agent-workflow-skills/skills/hermes-session-start --yes
+hermes skills install djm204/agent-workflow-skills/skills/hermes-task-start --yes
+hermes skills install djm204/agent-workflow-skills/skills/hermes-task-end --yes
+```
+
 ## Workflow Overview
 
 ### Session Start (auto)

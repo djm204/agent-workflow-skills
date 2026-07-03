@@ -33,7 +33,7 @@ Run these steps in order:
 2. **Run `git diff HEAD` + `git log --oneline -5`** → identify what actually changed vs. what was planned
 3. **Check memory systems** (in order):
    - Local MEMORY.md / project memory files
-   - `~/.claude/` session artifacts if available
+   - `~/.gemini/` session artifacts if available
 4. **Produce a recovery brief:**
    ```
    Last completed: [item from todo]

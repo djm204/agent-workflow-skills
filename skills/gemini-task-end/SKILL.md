@@ -1,17 +1,17 @@
 ---
-name: hermes-task-end
-description: Use before marking a Hermes task done to enforce quality gates, documentation updates, self-review, progress-document updates, and PR/Codex review-loop completion when applicable.
+name: gemini-task-end
+description: Use before marking a Gemini task done to enforce quality gates, documentation updates, self-review, progress-document updates, and PR/Gemini review-loop completion when applicable.
 version: 1.0.0
-author: djm204, adapted for Hermes Agent
+author: djm204, adapted for Gemini Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
-    tags: [workflow, quality-gates, task-end, verification, codex-review]
-    related_skills: [codex-review-loop, requesting-code-review, github-pr-workflow]
+  gemini:
+    tags: [workflow, quality-gates, task-end, verification, gemini-review]
+    related_skills: [gemini-review-loop, requesting-code-review, github-pr-workflow]
 ---
 
-# Hermes Task End Protocol
+# Gemini Task End Protocol
 
 ## Overview
 
@@ -47,7 +47,7 @@ Update only when applicable:
 When the task involves a GitHub PR:
 1. Push the branch only if the user asked for PR work.
 2. Open/update a PR with a concise body and test evidence.
-3. If the user requires Codex bot gating, load `codex-review-loop` and drive it to a terminal state.
+3. If the user requires Gemini bot gating, load `gemini-review-loop` and drive it to a terminal state.
 4. Verify CI/checks with `gh pr checks` or the repository's required workflow tooling.
 5. Do not merge unless the user requested/authorized merge behavior and all gates are satisfied.
 
@@ -64,5 +64,5 @@ Lead with what changed or the answer. Include:
 - [ ] Relevant tests/checks/builds ran or blockers are explicit.
 - [ ] Diff was self-reviewed.
 - [ ] Progress doc/todo state is updated.
-- [ ] PR/Codex/CI status is terminal where applicable.
+- [ ] PR/Gemini/CI status is terminal where applicable.
 - [ ] Final response does not promise future action without doing it.

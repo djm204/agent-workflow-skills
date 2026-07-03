@@ -58,6 +58,19 @@ hermes skills install djm204/agent-workflow-skills/skills/hermes-task-end --yes
 hermes skills install djm204/agent-workflow-skills/skills/pm-swarm --yes
 ```
 
+## Antigravity / Gemini install
+
+This repository also publishes Gemini/Antigravity-compatible skill packages under `skills/`:
+
+| Skill | Purpose |
+|-------|---------|
+| `gemini-session-start` | Start/recover Gemini sessions with compact project and work-state context. |
+| `gemini-task-start` | Kick off non-trivial Gemini implementation tasks with the right planning/recovery path. |
+| `gemini-task-end` | Run Gemini task completion quality gates before claiming done. |
+| `gemini-review-loop` | Drive the GitHub `chatgpt-codex-connector` review loop until a PR is clean. |
+
+To install locally for Antigravity, place the skill directories (e.g. `gemini-task-start`) in your machine-local global configuration folder: `~/.gemini/config/skills/`.
+
 ## Releases
 
 This repository uses Release Please for semantic-versioned GitHub releases from Conventional Commits. See [docs/releasing.md](docs/releasing.md).

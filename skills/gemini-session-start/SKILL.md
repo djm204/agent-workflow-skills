@@ -1,21 +1,21 @@
 ---
-name: hermes-session-start
-description: "Use at the beginning of a Hermes coding session or recovery handoff to establish compact context: git state, progress docs, recent tasks, and durable project lessons without wasting tokens."
+name: gemini-session-start
+description: "Use at the beginning of a Gemini coding session or recovery handoff to establish compact context: git state, progress docs, recent tasks, and durable project lessons without wasting tokens."
 version: 1.0.0
-author: djm204, adapted for Hermes Agent
+author: djm204, adapted for Gemini Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
+  gemini:
     tags: [workflow, session-start, context, recovery]
-    related_skills: [hermes-task-start, systematic-debugging]
+    related_skills: [gemini-task-start, systematic-debugging]
 ---
 
-# Hermes Session Start Protocol
+# Gemini Session Start Protocol
 
 ## Overview
 
-Claude plugin hooks do not auto-run in Hermes, so invoke this skill explicitly when starting or resuming project work. The goal is a compact context brief, not a full repo audit.
+Antigravity plugin hooks do not auto-run in Gemini, so invoke this skill explicitly when starting or resuming project work. The goal is a compact context brief, not a full repo audit.
 
 ## Context to Load
 

@@ -1,6 +1,6 @@
 ---
 name: task-end
-description: Run before marking any task done. Enforces quality gates, documentation updates, a documentation-drift janitor sweep, ADR completion, and the 3-round Codex review loop.
+description: Run before marking any task done. Enforces quality gates, documentation updates, a documentation-drift janitor sweep, ADR completion, and the 3-round Gemini review loop.
 ---
 
 # Task End Protocol
@@ -71,13 +71,13 @@ current."
 8. Run the **Documentation Janitor** drift sweep — fix or flag every finding
 9. **Push PR** (`gh pr create` if no PR exists, else `git push`)
 
-## Codex Review Loop (mandatory)
+## Gemini Review Loop (mandatory)
 
 **Prefer a dedicated loop skill if one is available.** Before running the fallback below,
-check whether a `codex-review-loop` skill is installed (e.g. from the `codex-review`
+check whether a `gemini-review-loop` skill is installed (e.g. from the `gemini-review`
 plugin). If it is, **invoke it** to drive the review on the PR and skip the inline fallback —
 it is the source of truth for the mechanics (three-channel polling, the terminal
-"no major issues" signal, thread resolution) and stays current as Codex changes.
+"no major issues" signal, thread resolution) and stays current as Gemini changes.
 
 Only if no such skill is available, fall back to the inline procedure below.
 
@@ -104,4 +104,4 @@ Round N:
 | 3 | After round 2 fixes pushed | Address all new comments, resolve, push |
 | Done | All threads resolved after round 3 | Report PR URL as complete |
 
-If Codex raises a P1 issue in round 3, address it and do a 4th round — never ship with open P1s.
+If Gemini raises a P1 issue in round 3, address it and do a 4th round — never ship with open P1s.

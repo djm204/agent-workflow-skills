@@ -44,6 +44,7 @@ This repository also publishes Hermes-compatible skill packages under `skills/`:
 | `hermes-session-start` | Start/recover Hermes sessions with compact project and work-state context. |
 | `hermes-task-start` | Kick off non-trivial Hermes implementation tasks with the right planning/recovery path. |
 | `hermes-task-end` | Run Hermes task completion quality gates before claiming done. |
+| `pm-swarm` | Create and operate a persistent PM-led Hermes Kanban swarm topology. |
 
 Install from Hermes with:
 
@@ -54,6 +55,7 @@ hermes skills install djm204/agent-workflow-skills/skills/resolve-issues --yes
 hermes skills install djm204/agent-workflow-skills/skills/hermes-session-start --yes
 hermes skills install djm204/agent-workflow-skills/skills/hermes-task-start --yes
 hermes skills install djm204/agent-workflow-skills/skills/hermes-task-end --yes
+hermes skills install djm204/agent-workflow-skills/skills/pm-swarm --yes
 ```
 
 ## Releases

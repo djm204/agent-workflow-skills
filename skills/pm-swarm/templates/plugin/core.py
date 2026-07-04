@@ -59,6 +59,18 @@ def _skills(value: Any, default: list[str] | None = None) -> list[str]:
     return [str(part).strip() for part in value if str(part).strip()]
 
 
+def _optional_positive_int(value: Any, field_name: str) -> int | None:
+    if value is None or value == "":
+        return None
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        raise ValueError(f"{field_name} must be a positive integer") from None
+    if number < 1:
+        raise ValueError(f"{field_name} must be a positive integer")
+    return number
+
+
 def parse_worker(value: str | dict[str, Any]) -> WorkerSpec:
     if isinstance(value, str):
         parts = [part.strip() for part in value.split(":", 2)]
@@ -76,7 +88,7 @@ def parse_worker(value: str | dict[str, Any]) -> WorkerSpec:
         body=str(value.get("body") or value.get("title") or ""),
         skills=_skills(value.get("skills")),
         priority=int(value.get("priority") or 0),
-        max_runtime_seconds=value.get("max_runtime_seconds"),
+        max_runtime_seconds=_optional_positive_int(value.get("max_runtime_seconds"), "worker.max_runtime_seconds"),
     )
 
 
@@ -98,7 +110,7 @@ def parse_pm(value: str | dict[str, Any]) -> PmSpec:
         body=str(value.get("body") or value.get("title") or ""),
         skills=_skills(value.get("skills"), DEFAULT_PM_SKILLS),
         priority=int(value.get("priority") or 0),
-        max_runtime_seconds=value.get("max_runtime_seconds"),
+        max_runtime_seconds=_optional_positive_int(value.get("max_runtime_seconds"), "pm.max_runtime_seconds"),
     )
 
 
@@ -193,6 +205,9 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
     capacity = _positive_int(args.get("pm_capacity"), "pm_capacity", 5)
     if not workers:
         raise ValueError("at least one worker is required")
+    requested_workspace_kind = str(args.get("workspace_kind") or "scratch")
+    if requested_workspace_kind == "worktree" and args.get("workspace_path"):
+        raise ValueError("workspace_path cannot be shared across a PM swarm worktree; omit it so each card can use an isolated workspace")
     shards = _chunks(workers, capacity)
     selected_pms = _selected_pms(pm_specs, len(shards))
     board = args.get("board") or None
@@ -239,18 +254,22 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
             if isinstance(existing, dict) and existing.get("kind") == "pm_swarm_v1":
                 return dict(existing)
 
-            kb.complete_task(
-                conn,
-                root,
-                summary="PM swarm topology planned; root remains the shared blackboard.",
-                metadata={
-                    "kind": "pm_swarm_v1",
-                    "goal": goal,
-                    "worker_count": len(workers),
-                    "pm_count": len(shards),
-                    "pm_capacity": capacity,
-                },
-            )
+            root_task = kb.get_task(conn, root)
+            if root_task is None:
+                raise ValueError(f"unknown root task {root}")
+            if root_task.status != "done":
+                kb.complete_task(
+                    conn,
+                    root,
+                    summary="PM swarm topology planned; root remains the shared blackboard.",
+                    metadata={
+                        "kind": "pm_swarm_v1",
+                        "goal": goal,
+                        "worker_count": len(workers),
+                        "pm_count": len(shards),
+                        "pm_capacity": capacity,
+                    },
+                )
 
             pm_ids: list[str] = []
             worker_ids: list[str] = []
@@ -355,4 +374,5 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
             }
             _post_blackboard(conn, root, author=created_by, key="topology", value=result)
             return result
+
 

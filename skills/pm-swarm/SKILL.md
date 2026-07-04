@@ -152,7 +152,10 @@ Call `pm_swarm_create` with:
 - [ ] Plugin exists at `~/.hermes/plugins/pm-swarm/plugin.yaml` and `__init__.py`.
 - [ ] `hermes plugins list --json` shows `pm-swarm` status `enabled`.
 - [ ] `hermes pm-swarm --help` works in a fresh CLI invocation.
-- [ ] A test creation with 6 workers creates 2 PM cards by default.
+- [ ] A zero or negative `max_runtime_seconds` in object specs fails fast before creating cards.
+- [ ] Explicit `--board` values are validated instead of silently falling back to `default`.
+- [ ] Shared `workspace_path` with `workspace_kind=worktree` is rejected for swarms to avoid worker checkout collisions.
+- [ ] Reusing an `idempotency_key` after a partial run does not duplicate child cards.
 - [ ] First worker card has its PM card as parent.
 - [ ] Verifier has all PM and worker cards as parents.
 - [ ] Root blackboard has a `pm_swarm_v1` topology payload.

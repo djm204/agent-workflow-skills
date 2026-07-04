@@ -154,7 +154,9 @@ Call `pm_swarm_create` with:
 - [ ] `hermes pm-swarm --help` works in a fresh CLI invocation.
 - [ ] A zero or negative `max_runtime_seconds` in object specs fails fast before creating cards.
 - [ ] Explicit `--board` values are validated instead of silently falling back to `default`.
-- [ ] Shared `workspace_path` with `workspace_kind=worktree` is rejected for swarms to avoid worker checkout collisions.
+- [ ] Explicit scratch `workspace_path` values are rejected so swarms use isolated Hermes scratch directories.
+- [ ] Explicit worktree anchors are absolute and become per-card `.worktrees/<card>` paths instead of one shared checkout.
+- [ ] Explicit dir workspaces are absolute before card creation.
 - [ ] Reusing an `idempotency_key` after a partial run does not duplicate child cards.
 - [ ] First worker card has its PM card as parent.
 - [ ] Verifier has all PM and worker cards as parents.

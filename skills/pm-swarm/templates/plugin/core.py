@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import json
+from pathlib import Path
 import re
 from typing import Any
 
@@ -187,6 +188,35 @@ def _child_key(root_key: str | None, suffix: str) -> str | None:
     return f"{root_key}:{suffix}" if root_key else None
 
 
+def _normalize_workspace_options(kind: str, path: Any) -> tuple[str, str | None]:
+    workspace_kind = str(kind or "scratch")
+    workspace_path = str(path).strip() if path else None
+    if workspace_kind == "scratch":
+        if workspace_path:
+            raise ValueError(
+                "workspace_path cannot be used with scratch PM swarms; "
+                "use workspace_kind=dir for a shared directory or omit workspace_path "
+                "for isolated Hermes scratch workspaces"
+            )
+        return workspace_kind, None
+    if workspace_kind == "dir":
+        if workspace_path and not Path(workspace_path).expanduser().is_absolute():
+            raise ValueError("workspace_kind=dir requires an absolute workspace_path")
+        return workspace_kind, workspace_path
+    if workspace_kind == "worktree":
+        if workspace_path and not Path(workspace_path).expanduser().is_absolute():
+            raise ValueError("workspace_kind=worktree requires an absolute workspace_path anchor")
+        return workspace_kind, workspace_path
+    raise ValueError("workspace_kind must be one of ['dir', 'scratch', 'worktree']")
+
+
+def _workspace_path_for(base_path: str | None, kind: str, task_suffix: str) -> str | None:
+    if kind != "worktree" or not base_path:
+        return base_path
+    safe_suffix = re.sub(r"[^A-Za-z0-9_.-]+", "-", task_suffix).strip("-._") or "task"
+    return str(Path(base_path).expanduser() / ".worktrees" / safe_suffix)
+
+
 def _profile_author() -> str:
     import os
     for env in ("HERMES_PROFILE_NAME", "HERMES_PROFILE"):
@@ -234,9 +264,10 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
     capacity = _positive_int(args.get("pm_capacity"), "pm_capacity", 5)
     if not workers:
         raise ValueError("at least one worker is required")
-    requested_workspace_kind = str(args.get("workspace_kind") or "scratch")
-    if requested_workspace_kind == "scratch" and args.get("workspace_path"):
-        raise ValueError("workspace_path cannot be shared across a PM swarm scratch workspace; use workspace_kind=dir for a shared directory or omit workspace_path")
+    requested_workspace_kind, requested_workspace_path = _normalize_workspace_options(
+        str(args.get("workspace_kind") or "scratch"),
+        args.get("workspace_path") or None,
+    )
     shards = _chunks(workers, capacity)
     selected_pms = _selected_pms(pm_specs, len(shards))
     board = args.get("board") or None
@@ -256,8 +287,8 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
             created_by = str(args.get("created_by") or _profile_author())
             tenant = args.get("tenant") or None
             priority = int(args.get("priority") or 0)
-            workspace_kind = str(args.get("workspace_kind") or "scratch")
-            workspace_path = args.get("workspace_path") or None
+            workspace_kind = requested_workspace_kind
+            workspace_path = requested_workspace_path
             idempotency_key = args.get("idempotency_key") or None
             root_key = str(idempotency_key) if idempotency_key else None
 
@@ -275,7 +306,7 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
                 priority=priority,
                 idempotency_key=root_key,
                 workspace_kind=workspace_kind,
-                workspace_path=workspace_path,
+                workspace_path=_workspace_path_for(workspace_path, workspace_kind, "root"),
                 skills=DEFAULT_PM_SKILLS,
             )
 
@@ -286,6 +317,11 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
             root_task = kb.get_task(conn, root)
             if root_task is None:
                 raise ValueError(f"unknown root task {root}")
+            if root_task.workspace_kind == "scratch" and root_task.workspace_path:
+                raise ValueError(
+                    "refusing to complete a scratch PM swarm root with an explicit workspace_path; "
+                    "omit workspace_path for isolated scratch workspaces or use workspace_kind=dir/worktree"
+                )
             if root_task.status != "done":
                 kb.complete_task(
                     conn,
@@ -322,7 +358,7 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
                     tenant=tenant,
                     priority=pm_spec.priority or priority,
                     workspace_kind=workspace_kind,
-                    workspace_path=workspace_path,
+                    workspace_path=_workspace_path_for(workspace_path, workspace_kind, f"pm-{shard_index}"),
                     skills=pm_spec.skills or DEFAULT_PM_SKILLS,
                     max_runtime_seconds=pm_spec.max_runtime_seconds,
                     idempotency_key=_child_key(root_key, f"pm:{shard_index}"),
@@ -341,7 +377,7 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
                         tenant=tenant,
                         priority=worker.priority or priority,
                         workspace_kind=workspace_kind,
-                        workspace_path=workspace_path,
+                        workspace_path=_workspace_path_for(workspace_path, workspace_kind, f"worker-{worker_index}"),
                         skills=worker.skills or None,
                         max_runtime_seconds=worker.max_runtime_seconds,
                         idempotency_key=_child_key(root_key, f"worker:{worker_index}"),
@@ -365,7 +401,7 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
                 tenant=tenant,
                 priority=priority,
                 workspace_kind=workspace_kind,
-                workspace_path=workspace_path,
+                workspace_path=_workspace_path_for(workspace_path, workspace_kind, "verifier"),
                 skills=DEFAULT_VERIFIER_SKILLS,
                 idempotency_key=_child_key(root_key, "verifier"),
             )
@@ -384,7 +420,7 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
                 tenant=tenant,
                 priority=priority,
                 workspace_kind=workspace_kind,
-                workspace_path=workspace_path,
+                workspace_path=_workspace_path_for(workspace_path, workspace_kind, "synthesizer"),
                 skills=DEFAULT_SYNTHESIZER_SKILLS,
                 idempotency_key=_child_key(root_key, "synthesizer"),
             )
@@ -403,5 +439,6 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
             }
             _post_blackboard(conn, root, author=created_by, key="topology", value=result)
             return result
+
 
 

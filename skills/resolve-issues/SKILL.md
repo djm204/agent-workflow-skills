@@ -1,26 +1,26 @@
 ---
 name: resolve-issues
-description: "Use when resolving GitHub issues priority-first in Gemini: triage, plan, or fix selected open issues with one branch and PR per issue, optional parallel worktrees via delegate_task, and Gemini review-loop gating."
+description: "Use when resolving GitHub issues priority-first in Hermes: triage, plan, or fix selected open issues with one branch and PR per issue, optional parallel worktrees via delegate_task, and Codex review-loop gating."
 version: 1.0.0
-author: djm204, adapted for Gemini Agent
+author: djm204, adapted for Hermes Agent
 license: MIT
 platforms: [linux, macos]
 metadata:
-  gemini:
+  hermes:
     tags: [github, issues, pull-requests, worktrees, orchestration]
-    related_skills: [gemini-review-loop, github-issues, github-pr-workflow, test-driven-development]
+    related_skills: [codex-review-loop, github-issues, github-pr-workflow, test-driven-development]
 ---
 
-# Resolve Issues for Gemini
+# Resolve Issues for Hermes
 
 ## Overview
 
-Resolve open GitHub issues for a repository in priority order. The bundled `scripts/select-issues.sh` fetches and sorts issues; Gemini handles triage, planning, implementation, PR creation, and optional parallel execution.
+Resolve open GitHub issues for a repository in priority order. The bundled `scripts/select-issues.sh` fetches and sorts issues; Hermes handles triage, planning, implementation, PR creation, and optional parallel execution.
 
 Modes:
 - `triage`: classify issues and propose labels/routing.
 - `plan`: investigate and write implementation approaches without modifying code.
-- `fix`: implement and ship one PR per issue, then run the Gemini review loop.
+- `fix`: implement and ship one PR per issue, then run the Codex review loop.
 
 ## When to Use
 
@@ -34,9 +34,9 @@ Do not use it for unrelated backlog browsing or for combining unrelated issues i
 - `gh auth status` succeeds.
 - `jq --version` succeeds.
 - Target repository has a clean enough working tree for issue branches or worktrees.
-- For fix mode, load `gemini-review-loop` before opening/merging PRs.
+- For fix mode, load `codex-review-loop` before opening/merging PRs.
 
-Gemini shows this skill's absolute directory when loaded. Use the helper script from that directory:
+Hermes shows this skill's absolute directory when loaded. Use the helper script from that directory:
 
 ```bash
 SCRIPT="/absolute/path/to/this/skill/scripts/select-issues.sh"
@@ -45,7 +45,7 @@ SCRIPT="/absolute/path/to/this/skill/scripts/select-issues.sh"
 Default install path:
 
 ```bash
-SCRIPT="$HOME/.gemini/skills/resolve-issues/scripts/select-issues.sh"
+SCRIPT="$HOME/.hermes/skills/resolve-issues/scripts/select-issues.sh"
 ```
 
 ## Argument Shape
@@ -93,7 +93,7 @@ Invariants for every issue:
 - Use TDD where practical: failing test first, then fix.
 - PR body includes `Closes #<number>`.
 - Run relevant tests/typecheck/build before opening or updating the PR.
-- Run `gemini-review-loop` after the PR is open/updated.
+- Run `codex-review-loop` after the PR is open/updated.
 
 Sequential flow:
 1. Select issues.
@@ -102,28 +102,28 @@ Sequential flow:
 
 Parallel flow:
 1. Create one worktree per issue, for example `../resolve-wt/issue-<number>`.
-2. Spawn one `delegate_task` per issue with the worktree path, issue JSON, one-PR invariant, and Gemini-loop requirement.
+2. Spawn one `delegate_task` per issue with the worktree path, issue JSON, one-PR invariant, and Codex-loop requirement.
 3. Cap concurrency at N.
-4. Require each subagent to return `{issue, branch, prUrl, geminiStatus, notes}`.
+4. Require each subagent to return `{issue, branch, prUrl, codexStatus, notes}`.
 5. Verify returned PR URLs and status yourself before reporting success.
-6. Remove completed worktrees only after their PR is open and Gemini is terminal.
+6. Remove completed worktrees only after their PR is open and Codex is terminal.
 
-## Gemini Review Gate
+## Codex Review Gate
 
-For fix mode, load and use `gemini-review-loop`. Do not substitute a local CLI review for the GitHub PR bot if the user requested Gemini bot gating.
+For fix mode, load and use `codex-review-loop`. Do not substitute a local CLI review for the GitHub PR bot if the user requested Codex bot gating.
 
 Terminal states:
-- `clean`: Gemini reported no major issues after the latest trigger.
+- `clean`: Codex reported no major issues after the latest trigger.
 - `manual-review`: connector unavailable or timed out after the bounded normal review window.
 - `blocked`: tests/CI/auth/review resolution prevented completion.
 
-Never claim an issue is fixed unless its PR is open and the Gemini loop reached `clean` or you explicitly report manual-review/blocker status.
+Never claim an issue is fixed unless its PR is open and the Codex loop reached `clean` or you explicitly report manual-review/blocker status.
 
 ## Reporting
 
 End with a concise table:
 
-| Issue | Mode/action | Branch | PR | Gemini status | Notes |
+| Issue | Mode/action | Branch | PR | Codex status | Notes |
 |------|-------------|--------|----|--------------|-------|
 
 ## Verification Checklist
@@ -132,5 +132,5 @@ End with a concise table:
 - [ ] Priority ordering was preserved.
 - [ ] Each fix has exactly one PR.
 - [ ] Tests/typecheck/build relevant to the change were run.
-- [ ] Gemini loop reached a terminal state for each PR.
+- [ ] Codex loop reached a terminal state for each PR.
 - [ ] Worktrees were cleaned up when safe.

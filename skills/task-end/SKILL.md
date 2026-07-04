@@ -71,13 +71,12 @@ current."
 8. Run the **Documentation Janitor** drift sweep — fix or flag every finding
 9. **Push PR** (`gh pr create` if no PR exists, else `git push`)
 
-## Gemini Review Loop (mandatory)
+## Codex Review Loop (mandatory)
 
 **Prefer a dedicated loop skill if one is available.** Before running the fallback below,
-check whether a `gemini-review-loop` skill is installed (e.g. from the `gemini-review`
-plugin). If it is, **invoke it** to drive the review on the PR and skip the inline fallback —
+check whether a `codex-review-loop` or `gemini-review-loop` skill is installed. If it is, **invoke it** to drive the review on the PR and skip the inline fallback —
 it is the source of truth for the mechanics (three-channel polling, the terminal
-"no major issues" signal, thread resolution) and stays current as Gemini changes.
+"no major issues" signal, thread resolution) and stays current as the review connector changes.
 
 Only if no such skill is available, fall back to the inline procedure below.
 

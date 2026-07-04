@@ -103,4 +103,4 @@ Round N:
 | 3 | After round 2 fixes pushed | Address all new comments, resolve, push |
 | Done | All threads resolved after round 3 | Report PR URL as complete |
 
-If Gemini raises a P1 issue in round 3, address it and do a 4th round — never ship with open P1s.
+If Codex raises a P1 issue in round 3, address it and do a 4th round — never ship with open P1s.

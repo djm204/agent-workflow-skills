@@ -28,7 +28,7 @@ Use this at the start of a meaningful implementation/debugging/design task. It r
 ## Path A: Spec Provided
 
 1. Read the provided spec/issue/files.
-2. Locate affected code with `search_files`; read definitions/usages before editing.
+2. Locate affected code with `glob` or `grep_search`; read definitions/usages before editing.
 3. Check tests covering the affected area.
 4. For larger work, create `tasks/<task-name>-progress.md` with an itemized checklist.
 5. Proceed without extra approval if the user asked you to implement and scope is clear; ask only if ambiguity changes the implementation.

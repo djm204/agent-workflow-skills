@@ -31,7 +31,7 @@
 #       account.login == owner (when owner given), or "selected" with repoIncluded==true.
 #
 #   trigger  --repo OWNER/NAME --pr N
-#       Post an "@gemini review" comment on PR N. Prints the trigger time (ISO8601 UTC).
+#       Post an "@codex review" comment on PR N. Prints the trigger time (ISO8601 UTC).
 #
 #   poll     --repo OWNER/NAME --pr N --since ISO8601
 #       Fetch the three channels and classify bot activity newer than --since.
@@ -41,7 +41,7 @@
 #       Pure classifier — no network. Reads a JSON object:
 #         {
 #           "since":          "<ISO8601>",                 # trigger time
-#           "botLogin":       "gemini-review-connector",   # optional, default as shown
+#           "botLogin":       "chatgpt-codex-connector",   # optional, default as shown
 #           "issueComments":  [ {user:{login}, created_at, body}, ... ],
 #           "reviews":        [ {user:{login}, submitted_at, state, body}, ... ],
 #           "inlineComments": [ {user:{login}, created_at, body, path, line, id}, ... ]

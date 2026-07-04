@@ -25,7 +25,7 @@ Antigravity plugin hooks do not auto-run in Gemini, so invoke this skill explici
 | Recent commits | `git log --oneline -5` | skip if no git repo |
 | Progress docs | `tasks/*-progress.md`, `tasks/todo.md` | skip if absent |
 | Lessons | `tasks/lessons.md`, project docs | skip if absent |
-| Prior chat | `session_search` when user references it | ask only if unretrievable |
+| Prior chat | `/resume` command (with session search) or transcript files when user references it | ask only if unretrievable |
 
 ## Procedure
 

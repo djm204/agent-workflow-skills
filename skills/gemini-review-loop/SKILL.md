@@ -39,9 +39,14 @@ SCRIPT="/absolute/path/to/this/skill/scripts/gemini-review-loop.sh"
 
 If installed in the default profile, the path is usually:
 
-```bash
-SCRIPT="$HOME/.gemini/config/skills/gemini-review-loop/scripts/gemini-review-loop.sh"
-```
+- **Antigravity**:
+  ```bash
+  SCRIPT="$HOME/.gemini/config/skills/gemini-review-loop/scripts/gemini-review-loop.sh"
+  ```
+- **Gemini CLI**:
+  ```bash
+  SCRIPT="$HOME/.gemini/skills/gemini-review-loop/scripts/gemini-review-loop.sh"
+  ```
 
 Prerequisites:
 - `gh auth status` succeeds for the target repo.

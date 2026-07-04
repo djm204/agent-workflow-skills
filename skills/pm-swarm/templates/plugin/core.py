@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import json
+import re
 from typing import Any
 
 from hermes_cli import kanban_db as kb
@@ -71,16 +72,47 @@ def _optional_positive_int(value: Any, field_name: str) -> int | None:
     return number
 
 
+_SKILL_LIST_RE = re.compile(r"^[A-Za-z0-9_.-]+(?:,[A-Za-z0-9_.-]+)*$")
+
+
+def _split_profile_title_skills(value: str, *, field_name: str, require_title: bool) -> tuple[str, str, list[str]]:
+    """Parse compact CLI specs while preserving normal colons in titles.
+
+    The historical form is ``profile:title[:skill,skill]``. Titles also often
+    contain colons (for example ``dev:API: add retries``), so only treat the
+    final colon-delimited segment as a skills suffix when it is an unambiguous
+    comma-separated skill token list with no whitespace. Users who need a
+    single skill can still use ``profile:title:skill-name``; colon-containing
+    prose titles keep their colons.
+    """
+    profile, sep, rest = value.partition(":")
+    if not sep:
+        if require_title:
+            raise ValueError(f"{field_name} must be profile:title or profile:title:skill,skill")
+        return _require_text(profile, f"{field_name}.profile"), "", []
+
+    title = rest.strip()
+    skills: list[str] = []
+    if ":" in rest:
+        maybe_title, maybe_skills = rest.rsplit(":", 1)
+        maybe_skills = maybe_skills.strip()
+        if maybe_skills and _SKILL_LIST_RE.fullmatch(maybe_skills):
+            title = maybe_title.strip()
+            skills = _skills(maybe_skills)
+
+    if require_title:
+        _require_text(title, f"{field_name}.title")
+    return _require_text(profile, f"{field_name}.profile"), title, skills
+
+
 def parse_worker(value: str | dict[str, Any]) -> WorkerSpec:
     if isinstance(value, str):
-        parts = [part.strip() for part in value.split(":", 2)]
-        if len(parts) < 2:
-            raise ValueError("worker must be profile:title or profile:title:skill,skill")
+        profile, title, skills = _split_profile_title_skills(value, field_name="worker", require_title=True)
         return WorkerSpec(
-            profile=_require_text(parts[0], "worker.profile"),
-            title=_require_text(parts[1], "worker.title"),
-            body=parts[1],
-            skills=_skills(parts[2] if len(parts) == 3 else None),
+            profile=profile,
+            title=title,
+            body=title,
+            skills=skills,
         )
     return WorkerSpec(
         profile=_require_text(value.get("profile"), "worker.profile"),
@@ -94,15 +126,12 @@ def parse_worker(value: str | dict[str, Any]) -> WorkerSpec:
 
 def parse_pm(value: str | dict[str, Any]) -> PmSpec:
     if isinstance(value, str):
-        parts = [part.strip() for part in value.split(":", 2)]
-        if not parts or not parts[0]:
-            raise ValueError("pm must be profile or profile:title[:skill,skill]")
-        title = parts[1] if len(parts) >= 2 else ""
+        profile, title, skills = _split_profile_title_skills(value, field_name="pm", require_title=False)
         return PmSpec(
-            profile=_require_text(parts[0], "pm.profile"),
+            profile=profile,
             title=title,
             body=title,
-            skills=_skills(parts[2] if len(parts) == 3 else None, DEFAULT_PM_SKILLS),
+            skills=skills or list(DEFAULT_PM_SKILLS),
         )
     return PmSpec(
         profile=_require_text(value.get("profile"), "pm.profile"),
@@ -206,8 +235,8 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
     if not workers:
         raise ValueError("at least one worker is required")
     requested_workspace_kind = str(args.get("workspace_kind") or "scratch")
-    if requested_workspace_kind == "worktree" and args.get("workspace_path"):
-        raise ValueError("workspace_path cannot be shared across a PM swarm worktree; omit it so each card can use an isolated workspace")
+    if requested_workspace_kind == "scratch" and args.get("workspace_path"):
+        raise ValueError("workspace_path cannot be shared across a PM swarm scratch workspace; use workspace_kind=dir for a shared directory or omit workspace_path")
     shards = _chunks(workers, capacity)
     selected_pms = _selected_pms(pm_specs, len(shards))
     board = args.get("board") or None

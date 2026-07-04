@@ -174,6 +174,13 @@ def _slash_handler(raw_args: str) -> str:
             "\"synthesizer\": \"writer\"}'"
         )
     try:
+        if (
+            len(raw) >= 2
+            and raw[0] == raw[-1]
+            and raw[0] in {"'", '"'}
+            and raw[1:-1].lstrip().startswith("{")
+        ):
+            raw = raw[1:-1].strip()
         if raw.startswith("{"):
             payload = json.loads(raw)
         else:

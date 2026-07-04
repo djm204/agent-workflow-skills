@@ -1,7 +1,7 @@
 {
   "name": "agent-workflow",
   "description": "Full-cycle agent workflow: session context loading, requirements interview, task tracking, ADRs, quality gates, and Codex review loop.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": {
     "name": "David Mendez",
     "email": "me@davidmendez.dev",

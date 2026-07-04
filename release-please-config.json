@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "b6974290e1a9b8bc69e67d2fc52c0e9dc51102a8",
+  "release-search-depth": 100,
+  "separate-pull-requests": false,
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "agent-workflow-skills",
+      "include-component-in-tag": false,
+      "extra-files": [
+        ".claude-plugin/plugin.json"
+      ]
+    }
+  }
+}

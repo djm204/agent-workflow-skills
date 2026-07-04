@@ -56,6 +56,10 @@ hermes skills install djm204/agent-workflow-skills/skills/hermes-task-start --ye
 hermes skills install djm204/agent-workflow-skills/skills/hermes-task-end --yes
 ```
 
+## Releases
+
+This repository uses Release Please for semantic-versioned GitHub releases from Conventional Commits. See [docs/releasing.md](docs/releasing.md).
+
 ## Workflow Overview
 
 ### Session Start (auto)

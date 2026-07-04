@@ -16,11 +16,27 @@ metadata:
 
 Use this skill to create and operate a user-local `pm-swarm` Hermes plugin that adds a persistent PM-led topology inside Hermes Kanban.
 
-The plugin should live under:
+This published skill includes a reproducible plugin template under:
+
+`templates/plugin/`
+
+Install that template into the active Hermes profile before using the CLI/tool interfaces:
+
+```bash
+bash "$HERMES_SKILL_DIR/scripts/install-pm-swarm-plugin.sh"
+```
+
+If `HERMES_SKILL_DIR` is not set, run the script from the installed skill directory, for example:
+
+```bash
+bash ~/.hermes/skills/devops/pm-swarm/scripts/install-pm-swarm-plugin.sh
+```
+
+The installer copies the plugin to:
 
 `~/.hermes/plugins/pm-swarm`
 
-The skill should live under:
+The skill itself should live under:
 
 `~/.hermes/skills/devops/pm-swarm/SKILL.md`
 
@@ -55,7 +71,13 @@ Do not use this for quick one-turn subtasks; use `delegate_task` for those.
 
 ## Interfaces
 
-The plugin exposes three repeatable interfaces after plugin loading/restart:
+Install the bundled plugin template first:
+
+```bash
+bash "$HERMES_SKILL_DIR/scripts/install-pm-swarm-plugin.sh"
+```
+
+After plugin installation and Hermes plugin loading/restart, the plugin exposes three repeatable interfaces:
 
 1. Model tool: `pm_swarm_create`
 2. CLI command: `hermes pm-swarm ...`
@@ -124,6 +146,9 @@ Call `pm_swarm_create` with:
 
 ## Verification Checklist
 
+- [ ] Plugin template exists at `templates/plugin/plugin.yaml`, `templates/plugin/__init__.py`, and `templates/plugin/core.py`.
+- [ ] Installer exists at `scripts/install-pm-swarm-plugin.sh`.
+- [ ] Run `bash "$HERMES_SKILL_DIR/scripts/install-pm-swarm-plugin.sh"` from an installed skill copy.
 - [ ] Plugin exists at `~/.hermes/plugins/pm-swarm/plugin.yaml` and `__init__.py`.
 - [ ] `hermes plugins list --json` shows `pm-swarm` status `enabled`.
 - [ ] `hermes pm-swarm --help` works in a fresh CLI invocation.

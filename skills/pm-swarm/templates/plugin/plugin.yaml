@@ -1,0 +1,5 @@
+name: pm-swarm
+version: 1.0.0
+description: Persistent PM-led Kanban swarm orchestration for this Hermes profile
+provides_tools:
+  - pm_swarm_create

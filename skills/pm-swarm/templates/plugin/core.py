@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import json
-from typing import Any, Iterable
+from typing import Any
 
 from hermes_cli import kanban_db as kb
 
@@ -118,8 +118,8 @@ def _pm_context(root_id: str, goal: str, shard_index: int, capacity: int) -> str
         _swarm_context(root_id, goal)
         + "\n## PM shard protocol\n"
         + f"- You are PM shard {shard_index}; own at most {capacity} worker tasks.\n"
-        + "- Coordinate worker scope, prevent overlap, unblock workers, and report shard status on the root blackboard.\n"
-        + "- Complete only after assigned workers have usable handoffs or are blocked with actionable reasons.\n"
+        + "- Coordinate worker scope, prevent overlap, and post shard planning instructions on the root blackboard.\n"
+        + "- Complete after your shard plan/instructions are posted so dependent workers can start; do not wait for worker handoffs before completing.\n"
     )
 
 
@@ -140,6 +140,10 @@ def _selected_pms(pm_specs: list[PmSpec], count: int) -> list[PmSpec]:
     if not pm_specs:
         raise ValueError("at least one pm profile is required")
     return [pm_specs[i % len(pm_specs)] for i in range(count)]
+
+
+def _child_key(root_key: str | None, suffix: str) -> str | None:
+    return f"{root_key}:{suffix}" if root_key else None
 
 
 def _profile_author() -> str:
@@ -192,6 +196,8 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
     shards = _chunks(workers, capacity)
     selected_pms = _selected_pms(pm_specs, len(shards))
     board = args.get("board") or None
+    if board and not kb.board_exists(str(board)):
+        raise ValueError(f"unknown board {board!r}; create it first or omit --board")
 
     scope = kb.scoped_current_board(str(board)) if board else None
     if scope is None:
@@ -209,6 +215,7 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
             workspace_kind = str(args.get("workspace_kind") or "scratch")
             workspace_path = args.get("workspace_path") or None
             idempotency_key = args.get("idempotency_key") or None
+            root_key = str(idempotency_key) if idempotency_key else None
 
             root = kb.create_task(
                 conn,
@@ -222,7 +229,7 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
                 created_by=created_by,
                 tenant=tenant,
                 priority=priority,
-                idempotency_key=str(idempotency_key) if idempotency_key else None,
+                idempotency_key=root_key,
                 workspace_kind=workspace_kind,
                 workspace_path=workspace_path,
                 skills=DEFAULT_PM_SKILLS,
@@ -248,6 +255,7 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
             pm_ids: list[str] = []
             worker_ids: list[str] = []
             assignments: dict[str, list[str]] = {}
+            worker_index = 0
             for shard_index, (pm_spec, shard) in enumerate(zip(selected_pms, shards), start=1):
                 pm_title = pm_spec.title or f"PM shard {shard_index}: {goal.splitlines()[0][:70]}"
                 pm_body = (
@@ -269,10 +277,12 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
                     workspace_path=workspace_path,
                     skills=pm_spec.skills or DEFAULT_PM_SKILLS,
                     max_runtime_seconds=pm_spec.max_runtime_seconds,
+                    idempotency_key=_child_key(root_key, f"pm:{shard_index}"),
                 )
                 pm_ids.append(pm_id)
                 assignments[pm_id] = []
                 for worker in shard:
+                    worker_index += 1
                     worker_id = kb.create_task(
                         conn,
                         title=worker.title,
@@ -286,6 +296,7 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
                         workspace_path=workspace_path,
                         skills=worker.skills or None,
                         max_runtime_seconds=worker.max_runtime_seconds,
+                        idempotency_key=_child_key(root_key, f"worker:{worker_index}"),
                     )
                     worker_ids.append(worker_id)
                     assignments[pm_id].append(worker_id)
@@ -308,6 +319,7 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
                 workspace_kind=workspace_kind,
                 workspace_path=workspace_path,
                 skills=DEFAULT_VERIFIER_SKILLS,
+                idempotency_key=_child_key(root_key, "verifier"),
             )
 
             synthesizer_id = kb.create_task(
@@ -326,6 +338,7 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
                 workspace_kind=workspace_kind,
                 workspace_path=workspace_path,
                 skills=DEFAULT_SYNTHESIZER_SKILLS,
+                idempotency_key=_child_key(root_key, "synthesizer"),
             )
 
             result = {
@@ -342,3 +355,4 @@ def create_pm_swarm_from_args(args: dict[str, Any]) -> dict[str, Any]:
             }
             _post_blackboard(conn, root, author=created_by, key="topology", value=result)
             return result
+

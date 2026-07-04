@@ -13,6 +13,17 @@ from typing import Any
 
 from .core import create_pm_swarm_from_args
 
+
+class _SlashArgumentParser(argparse.ArgumentParser):
+    def error(self, message: str) -> None:
+        raise ValueError(message)
+
+    def exit(self, status: int = 0, message: str | None = None) -> None:
+        if status:
+            raise ValueError((message or f"argument parsing failed with status {status}").strip())
+        raise ValueError((message or "argument parsing exited").strip())
+
+
 PM_SWARM_SCHEMA = {
     "name": "pm_swarm_create",
     "description": (
@@ -168,7 +179,7 @@ def _slash_handler(raw_args: str) -> str:
         else:
             # Lightweight convenience wrapper around the CLI grammar.
             tokens = shlex.split(raw)
-            parser = argparse.ArgumentParser(prog="/pm-swarm", add_help=False)
+            parser = _SlashArgumentParser(prog="/pm-swarm", add_help=False)
             _setup_cli(parser)
             ns = parser.parse_args(tokens)
             payload = {
@@ -214,3 +225,4 @@ def register(ctx):
         description="Create a persistent PM-led Kanban swarm",
         args_hint="<json-or-cli-args>",
     )
+

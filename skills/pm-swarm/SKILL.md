@@ -140,8 +140,8 @@ Call `pm_swarm_create` with:
 1. Use an idempotency key for any mission that might be retried.
 2. Give workers narrow titles/bodies so PMs can prevent overlap.
 3. Use PM profiles that have Kanban access and the `kanban-orchestrator` skill available.
-4. PM cards are deliberately dependencies of worker cards. This makes PMs start first and own shard planning before workers run.
-5. The verifier depends on both PM and worker cards. It should pass only after all shard handoffs are complete and evidence is sufficient.
+4. PM cards are deliberately dependencies of worker cards. This makes PMs start first, post shard planning/instructions, then complete so workers can run. PMs must not wait for worker handoffs before completing, otherwise the shard can deadlock.
+5. The verifier depends on both PM and worker cards. It should pass only after PM planning and all worker handoffs are complete and evidence is sufficient.
 6. The synthesizer depends on verifier and should not start until the verification gate passes.
 
 ## Verification Checklist

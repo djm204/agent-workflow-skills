@@ -43,7 +43,8 @@ SCRIPT="/absolute/path/to/this/skill/scripts/codex-review-loop.sh"
 If installed in the default profile, the path is usually:
 
 - **Hermes**: `$HOME/.hermes/skills/codex-review-loop/scripts/codex-review-loop.sh`
-- **Antigravity (agy)**: `$HOME/.gemini/skills/codex-review-loop/scripts/codex-review-loop.sh` or `$HOME/.gemini/config/skills/codex-review-loop/scripts/codex-review-loop.sh`
+- **Antigravity (agy)**: `$HOME/.gemini/config/skills/codex-review-loop/scripts/codex-review-loop.sh`
+- **Gemini CLI**: `$HOME/.gemini/skills/codex-review-loop/scripts/codex-review-loop.sh`
 
 Prerequisites:
 - `gh auth status` succeeds for the target repo.

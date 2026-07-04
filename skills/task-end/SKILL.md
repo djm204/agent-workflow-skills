@@ -1,6 +1,6 @@
 ---
 name: task-end
-description: Run before marking any task done. Enforces quality gates, documentation updates, a documentation-drift janitor sweep, ADR completion, and the 3-round Gemini review loop.
+description: Run before marking any task done. Enforces quality gates, documentation updates, a documentation-drift janitor sweep, ADR completion, and the 3-round Codex/Gemini review loop.
 ---
 
 # Task End Protocol

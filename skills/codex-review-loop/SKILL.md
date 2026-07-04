@@ -18,7 +18,7 @@ metadata:
 
 ## Overview
 
-Drive the GitHub Codex connector (`chatgpt-codex-connector`) through a complete review-address-resolve cycle on a PR until it reports no major issues. The review is triggered directly on GitHub—either automatically on PR creation/update events or by commenting `@codex review` (or `@gemini review`) on the PR. Codex is asynchronous and reports through three GitHub channels, so use the bundled script for detection, triggering, polling, and classification.
+Drive the GitHub Codex connector (`chatgpt-codex-connector`) through a complete review-address-resolve cycle on a PR until it reports no major issues. The review is triggered directly on GitHub—either automatically on PR creation/update events or by commenting `@codex review` on the PR. Codex is asynchronous and reports through three GitHub channels, so use the bundled script for detection, triggering, polling, and classification.
 
 Core split:
 - Mechanical steps: use `scripts/codex-review-loop.sh` from this skill directory.

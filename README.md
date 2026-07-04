@@ -69,7 +69,9 @@ This repository also publishes Gemini/Antigravity-compatible skill packages unde
 | `gemini-task-end` | Run Gemini task completion quality gates before claiming done. |
 | `gemini-review-loop` | Drive the GitHub `chatgpt-codex-connector` review loop until a PR is clean. |
 
-To install locally for Antigravity, place the skill directories (e.g. `gemini-task-start`) in your machine-local global configuration folder: `~/.gemini/config/skills/`.
+To install locally, copy the skill directories into your local configuration folder:
+- **Antigravity (TUI/IDE)**: `~/.gemini/config/skills/`
+- **Gemini CLI**: `~/.gemini/skills/`
 
 ## Releases
 

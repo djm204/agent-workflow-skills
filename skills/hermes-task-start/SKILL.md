@@ -1,17 +1,17 @@
 ---
-name: gemini-task-start
-description: Use before starting a non-trivial Gemini implementation task to choose the right kickoff path, gather context, create a progress checklist, and avoid coding before requirements or recovery state are clear.
+name: hermes-task-start
+description: Use before starting a non-trivial Hermes implementation task to choose the right kickoff path, gather context, create a progress checklist, and avoid coding before requirements or recovery state are clear.
 version: 1.0.0
-author: djm204, adapted for Gemini Agent
+author: djm204, adapted for Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  gemini:
+  hermes:
     tags: [workflow, planning, task-start, recovery, requirements]
     related_skills: [plan, test-driven-development, systematic-debugging]
 ---
 
-# Gemini Task Start Protocol
+# Hermes Task Start Protocol
 
 ## Overview
 
@@ -58,10 +58,10 @@ Ask only questions needed to safely proceed:
 
 After enough answers, create/update the progress checklist and begin.
 
-## Gemini-Specific Notes
+## Hermes-Specific Notes
 
-- Use `write_todos` for in-session step tracking.
-- Use subagents (like `research` or custom subagents via `invoke_subagent`) for independent parallel workstreams; give children full context and require verifiable outputs.
+- Use `todo` for in-session step tracking.
+- Use `delegate_task` for independent parallel workstreams; give children full context and require verifiable outputs.
 - Prefer actual tool verification over narrative assurances.
 
 ## Verification Checklist

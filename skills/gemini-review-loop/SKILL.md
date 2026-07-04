@@ -1,50 +1,52 @@
 ---
-name: codex-review-loop
-description: Use when a pull request should be reviewed by the GitHub Codex bot (chatgpt-codex-connector) and its findings driven to resolution in Hermes or Antigravity (agy) — after opening/updating a PR, when asked to run the codex loop, comment @codex review, or address Codex review threads until the PR is clean.
+name: gemini-review-loop
+description: Use when a pull request should be reviewed by the GitHub Codex bot (chatgpt-codex-connector) and its findings driven to resolution in Gemini — after opening/updating a PR, when asked to run the gemini loop, comment @codex review, or address Gemini review threads until the PR is clean.
 version: 1.0.0
-author: djm204, adapted for Hermes/Antigravity/agy
+author: djm204, adapted for Gemini Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
-  hermes:
-    tags: [github, pull-requests, codex, review-loop, automation]
-    related_skills: [github-pr-workflow, github-code-review]
-  antigravity:
-    tags: [github, pull-requests, codex, review-loop, automation]
+  gemini:
+    tags: [github, pull-requests, gemini, review-loop, automation]
     related_skills: [github-pr-workflow, github-code-review]
 ---
 
-# Codex Review Loop for Hermes and Antigravity (agy)
+# Gemini Review Loop for Gemini
 
 ## Overview
 
-Drive the GitHub Codex connector (`chatgpt-codex-connector`) through a complete review-address-resolve cycle on a PR until it reports no major issues. The review is triggered directly on GitHub—either automatically on PR creation/update events or by commenting `@codex review` on the PR. Codex is asynchronous and reports through three GitHub channels, so use the bundled script for detection, triggering, polling, and classification.
+Drive the GitHub Codex connector (`chatgpt-codex-connector`) through a complete review-address-resolve cycle on a PR until it reports no major issues. The review is triggered directly on GitHub—either automatically on PR creation/update events or by commenting `@codex review` on the PR. Gemini is asynchronous and reports through three GitHub channels, so use the bundled script for detection, triggering, polling, and classification.
 
 Core split:
-- Mechanical steps: use `scripts/codex-review-loop.sh` from this skill directory.
+- Mechanical steps: use `scripts/gemini-review-loop.sh` from this skill directory.
 - Judgement: decide whether each finding is real and how to fix it.
 
 ## When to Use
 
-- A PR was opened or updated and needs the GitHub Codex/Gemini bot gate before merge.
-- The user asks for `@codex review`, the Codex/Gemini review loop, or review feedback resolution.
+- A PR was opened or updated and needs the GitHub Gemini/Codex bot gate before merge.
+- The user asks for `@codex review`, the Gemini review loop, or review feedback resolution.
 - A pre-merge workflow requires a clean review pass.
 
 Do not use this for human reviews or CI checks.
 
-## Setup
+## Gemini Setup
 
-This skill shows the absolute skill directory path when it loads. Use that path for the script:
+Gemini shows the absolute skill directory path when it loads this skill. Use that path for the script:
 
 ```bash
-SCRIPT="/absolute/path/to/this/skill/scripts/codex-review-loop.sh"
+SCRIPT="/absolute/path/to/this/skill/scripts/gemini-review-loop.sh"
 ```
 
 If installed in the default profile, the path is usually:
 
-- **Hermes**: `$HOME/.hermes/skills/codex-review-loop/scripts/codex-review-loop.sh`
-- **Antigravity (agy)**: `$HOME/.gemini/config/skills/codex-review-loop/scripts/codex-review-loop.sh`
-- **Gemini CLI**: `$HOME/.gemini/skills/codex-review-loop/scripts/codex-review-loop.sh`
+- **Antigravity**:
+  ```bash
+  SCRIPT="$HOME/.gemini/config/skills/gemini-review-loop/scripts/gemini-review-loop.sh"
+  ```
+- **Gemini CLI**:
+  ```bash
+  SCRIPT="$HOME/.gemini/skills/gemini-review-loop/scripts/gemini-review-loop.sh"
+  ```
 
 Prerequisites:
 - `gh auth status` succeeds for the target repo.
@@ -61,7 +63,7 @@ Prerequisites:
 | Classify fixture | `bash "$SCRIPT" classify --input fixture.json` |
 | Detect fixture | `bash "$SCRIPT" detect-classify --input fixture.json` |
 
-`detect` returns `available: true | false | "unknown"`. Treat `"unknown"` as trigger-and-observe, not unavailable. Only declare unavailable if normal review polling times out with no Codex response.
+`detect` returns `available: true | false | "unknown"`. Treat `"unknown"` as trigger-and-observe, not unavailable. Only declare unavailable if normal review polling times out with no Gemini response.
 
 `poll` returns `{status: clean|findings|working, respondedAt, findings[]}`.
 
@@ -69,7 +71,7 @@ Prerequisites:
 
 1. Detect availability with `detect`.
 2. Trigger a review with `trigger`; keep the returned timestamp.
-3. Poll all three Codex channels with `poll`:
+3. Poll all three Gemini channels with `poll`:
    - top-level issue comments,
    - PR reviews,
    - inline PR comments.
@@ -104,5 +106,5 @@ Reply before resolving so the audit trail explains the fix or the non-issue rati
 - [ ] `gh auth status` works.
 - [ ] `jq --version` works.
 - [ ] Script `detect` or `detect-classify` runs.
-- [ ] Every actionable Codex finding was answered and resolved.
+- [ ] Every actionable Gemini finding was answered and resolved.
 - [ ] A fresh final round reached `status: clean`, or unavailability was explicitly reported.

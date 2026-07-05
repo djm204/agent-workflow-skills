@@ -218,7 +218,7 @@ def extract_command_and_workdir(data: dict[str, Any], fallback_cwd: Path) -> tup
     # Exact blocked command blocks are usually backtick quoted after a label.
     labels = [
         r"Exact blocked command:\s*`([^`]+)`",
-        r"blocked command:\s*`([^`]+)`",
+        r"blocked command(?:\s*\([^)]*\))?(?:\s+(?:requiring|needing)\s+approval)?:\s*`([^`]+)`",
         r"blocked command(?:\s+(?:requiring|needing)\s+approval)?:\s*```(?:bash)?\s*([^`]+?)\s*```",
         r"approval-blocked command:\s*```(?:bash)?\s*([^`]+?)\s*```",
         r"approval-blocked command:\s*`([^`]+)`",
@@ -270,7 +270,7 @@ def is_allowed_command(cmd: str, workdir: Path) -> bool:
         r"^git push --force-with-lease(?: origin (HEAD:)?[-/\w.]+)?$",
         r"^git status --short --branch && git push --force-with-lease(?: origin (HEAD:)?[-/\w.]+)?$",
         r"^cd /home/pfkagent/dev/resolve-wt/issue-\d+(?:-clean)? && PR_BRANCH=[-/\w.]+ && git fetch origin \"\$PR_BRANCH\" && OLD=\$\(git rev-parse FETCH_HEAD\) && echo \"old_remote=\$OLD new_head=\$\(git rev-parse HEAD\)\" && git push origin HEAD:\$PR_BRANCH --force-with-lease=refs/heads/\$PR_BRANCH:\$OLD$",
-        r"^git add [-/\w. ]+ && git diff --cached --stat && git commit --amend --no-edit && git push --force-with-lease origin [-/\w.]+$",
+        r"^git add [-/\w. ]+ && git diff --cached --(?:stat|check) && git commit --amend --no-edit && git push --force-with-lease(?: origin [-/\w.]+)?$",
         r"^python3 /home/pfkagent/\.hermes/scripts/frankenbeast_codex_resolve_comments\.py --repo djm204/frankenbeast --pr \d+ --comment-ids( \d{8,})+ --retrigger$",
     ]
     return any(re.match(p, cmd) for p in allowed_patterns)

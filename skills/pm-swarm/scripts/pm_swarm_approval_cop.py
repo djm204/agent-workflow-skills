@@ -396,7 +396,7 @@ def find_decision(req: dict[str, Any], db_path: Path) -> tuple[str, int, str] | 
         # Only treat the user's active text as the decision. The Discord bridge may
         # include replied-to/context messages containing `ALLOW ALWAYS <token>` rows;
         # those must never be re-parsed as fresh approvals.
-        if re.search(rf"\bALLOW\s+ALWAYS\s+{rid}\b", active, flags=re.I):
+        if re.search(rf"\b(?:ALLOW\s+ALWAYS|ALWAYS\s+ALLOW)\s+{rid}\b", active, flags=re.I):
             return "approved_always", mid, active
         if re.search(rf"\b(?:APPROVE|ALLOW\s+ONCE|ALLOW)\s+{rid}\b", active, flags=re.I):
             return "approved", mid, active
@@ -405,11 +405,18 @@ def find_decision(req: dict[str, Any], db_path: Path) -> tuple[str, int, str] | 
         # Usability: a bare APPROVE/ALLOW/DENY reply applies only to the token in
         # the directly replied-to message, not every token present in surrounding
         # context.
-        bare = re.fullmatch(r"(?:APPROVE|ALLOW(?:\s+ONCE)?|DENY)\b", active.strip(), flags=re.I)
+        bare = re.fullmatch(r"(?:APPROVE|ALLOW(?:\s+ONCE)?|ALLOW\s+ALWAYS|ALWAYS\s+ALLOW|DENY)\b", active.strip(), flags=re.I)
         if bare:
             replied_match = re.search(r"\[Replying to:\s*.*?Token:\s*`?([0-9a-f]{8})`?", context, flags=re.I | re.S)
             if replied_match and replied_match.group(1).lower() == rid_raw.lower():
-                return ("denied" if active.strip().upper().startswith("DENY") else "approved"), mid, active
+                active_upper = " ".join(active.strip().upper().split())
+                if active_upper.startswith("DENY"):
+                    verdict = "denied"
+                elif active_upper in {"ALLOW ALWAYS", "ALWAYS ALLOW"}:
+                    verdict = "approved_always"
+                else:
+                    verdict = "approved"
+                return verdict, mid, active
     return None
 
 

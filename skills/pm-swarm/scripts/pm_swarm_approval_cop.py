@@ -41,14 +41,23 @@ APPROVAL_KEYWORDS = (
     "approval-required",
     "approval needed",
     "approval-needed",
+    "need approval",
+    "needs approval",
+    "requires approval",
     "approval layer",
     "push approval required",
     "push approval needed",
     "needs approval",
     "needed approval",
     "explicit approval",
+    "human decision",
+    "approve one over-cap",
+    "over-cap current-head @codex review",
     "approve another codex trigger",
     "approve one extra trigger",
+    "approve one more codex trigger",
+    "approve one more @codex review",
+    "approve one more codex review",
     "authorize one extra @codex review",
     "one extra @codex review pass",
     "approve extra trigger",
@@ -297,9 +306,9 @@ def extract_command_and_workdir(data: dict[str, Any], fallback_cwd: Path) -> tup
         r"exact command blocked pending approval was:\s*```(?:bash)?\s*([^`]+?)\s*```",
         r"request approval for this exact [^:]+command:\s*```(?:bash)?\s*([^`]+?)\s*```",
         r"approval blocker is missing an allowlisted exact command.*?```(?:bash)?\s*([^`]+?)\s*```",
-        r"blocked command(?:\s*\([^)]*\))?(?:\s+(?:requiring|needing)\s+approval)?:\s*`([^`]+)`",
-        r"blocked command(?:\s+(?:requiring|needing)\s+approval)?:\s*```(?:bash)?\s*([^`]+?)\s*```",
-        r"blocked command(?:\s*\([^)]*\))?(?:\s+(?:requiring|needing)\s+approval)?:\s*\n\s*([^\n`]+)",
+        r"blocked command(?:\s*\([^)]*\))?(?:\s+(?:requiring|needing)\s+approval)?(?:\s+was)?:\s*`([^`]+)`",
+        r"blocked command(?:\s+(?:requiring|needing)\s+approval)?(?:\s+was)?:\s*```(?:bash)?\s*([^`]+?)\s*```",
+        r"blocked command(?:\s*\([^)]*\))?(?:\s+(?:requiring|needing)\s+approval)?(?:\s+was)?:\s*\n\s*([^\n`]+)",
         r'"blocked_command"\s*:\s*"([^"]+)"',
         r"blocked command awaiting approval layer:\s*```(?:bash)?\s*([^`]+?)\s*```",
         r"approval-blocked command:\s*```(?:bash)?\s*([^`]+?)\s*```",
@@ -326,6 +335,16 @@ def extract_command_and_workdir(data: dict[str, Any], fallback_cwd: Path) -> tup
             # to keep existing exact command policy ids stable.
             lines = [line.rstrip() for line in cmd.splitlines() if line.strip()]
             cmd = "\n".join(lines) if len(lines) > 1 else " ".join(cmd.split())
+            # A previously approved codex-review-loop trigger can become stale
+            # after the trigger count reaches the approved cap, e.g. the exact
+            # recorded command used MAX_INVOCATIONS=21 and execution failed with
+            # "invocation cap reached (21/21)". With a fresh approve-all, mint a
+            # new exact command for the next cap value instead of reusing the
+            # permanently failing token.
+            cap_reached = re.search(r"invocation cap reached \((\d+)/\1\)", text, flags=re.I)
+            if cap_reached and is_codex_review_loop_trigger_command(cmd):
+                next_cap = int(cap_reached.group(1)) + 1
+                cmd = re.sub(r"CODEX_REVIEW_MAX_INVOCATIONS=\d+", f"CODEX_REVIEW_MAX_INVOCATIONS={next_cap}", cmd, count=1)
             command_candidates.append((m.start(), cmd))
     for _pos, cmd in sorted(command_candidates, key=lambda item: item[0], reverse=True):
         # A doctor/takeover card often runs from a scratch Kanban workspace while
@@ -358,7 +377,13 @@ def extract_command_and_workdir(data: dict[str, Any], fallback_cwd: Path) -> tup
     # instead of liveness repeating "approve another trigger" forever.
     pr_match = re.search(r"PR\s*#(\d+)", text, flags=re.I)
     lower_text = text.lower()
-    if pr_match and "codex" in lower_text and "review" in lower_text and any(
+    ids = re.findall(r"`(\d{8,})`", text)
+    ids.extend(re.findall(r'"(\d{8,})"\s*:', text))
+    helper_requested = bool(ids) and any(
+        helper_marker in lower_text
+        for helper_marker in ("resolve-codex", "reply/resolve", "comment-ids", "codex threads", "codex review threads", "review threads")
+    )
+    if pr_match and "codex" in lower_text and "review" in lower_text and not helper_requested and any(
         marker in lower_text
         for marker in (
             "5 @codex review invocation cap",
@@ -393,9 +418,23 @@ def extract_command_and_workdir(data: dict[str, Any], fallback_cwd: Path) -> tup
     # Workers sometimes cannot include a long GitHub API reply/resolve script in
     # the blocked summary. If they recorded PR + exact Codex comment ids, create
     # a deterministic helper command that performs only those side effects after
-    # approval.
+    # approval. Accept both backticked ids and JSON object keys from fenced
+    # `/tmp/resolve-codex-<pr>.json` handoffs.
     ids = re.findall(r"`(\d{8,})`", text)
-    if pr_match and ids and ("resolve codex" in text.lower() or "codex review comments" in text.lower() or "inline comments" in text.lower()):
+    ids.extend(re.findall(r'"(\d{8,})"\s*:', text))
+    lower_text = text.lower()
+    if pr_match and ids and any(
+        marker in lower_text
+        for marker in (
+            "resolve codex",
+            "codex review comments",
+            "codex review threads",
+            "codex threads",
+            "review threads",
+            "inline comments",
+            "resolve-codex",
+        )
+    ):
         helper = Path(__file__).with_name("frankenbeast_codex_resolve_comments.py")
         unique_ids = []
         for cid in ids:
@@ -450,12 +489,13 @@ def is_allowed_command(cmd: str, workdir: Path) -> bool:
         r"^cd /home/pfkagent/dev/resolve-wt/issue-\d+(?:-clean)? && PR_BRANCH=[-/\w.]+ && git fetch origin \"\$PR_BRANCH\" && OLD=\$\(git rev-parse FETCH_HEAD\) && echo \"old_remote=\$OLD new_head=\$\(git rev-parse HEAD\)\" && git push origin HEAD:\$PR_BRANCH --force-with-lease=refs/heads/\$PR_BRANCH:\$OLD$",
         r"^git add [-/\w. ]+ && git diff --cached --(?:stat|check) && git commit --amend --no-edit && git push --force-with-lease(?: origin [-/\w.]+)?$",
         r"^git add [-/\w. ]+ && git diff --cached --stat && git diff --cached --check && git commit -m \"[^\"]+\" && git push --force-with-lease origin HEAD:[-/\w.]+$",
+        r"^set -euo pipefail\s+cd /home/pfkagent/dev/resolve-wt/issue-\d+\s+(?:# [^\n]+\s+)?git diff --check\s+git status --short\s+git add [-/\w. ]+\s+git commit --amend --no-edit\s+git push --force-with-lease(?: origin [-/\w.]+)?$",
         r"^set -euo pipefail\s+cd /home/pfkagent/dev/resolve-wt/issue-\d+\s+git status --short --branch\s+git diff --stat\s+git add [-/\w. ]+\s+git commit --amend --no-edit\s+git push --force-with-lease(?: origin [-/\w.]+)?$",
         r"^set -euo pipefail\s+cd /home/pfkagent/dev/resolve-wt/issue-\d+\s+git status --short --branch\s+git push origin HEAD:[-/\w.]+\s+gh pr create --repo djm204/frankenbeast --base main --head [-/\w.]+ --title \"[^\"]+\" --body \$'[^']+'$",
         r"^set -euo pipefail\s+current=\$\(git rev-parse --short=8 HEAD\)\s+backup=\"backup/issue-\d+-local-\$\{current\}\"\s+if ! git show-ref --verify --quiet \"refs/heads/\$backup\"; then\s+git branch \"\$backup\" HEAD\s+fi\s+git reset --hard origin/resolve/issue-\d+[-/\w.]+\s+git config user\.name 'David Mendez'\s+git config user\.email 'me@davidmendez\.dev'\s+printf 'backup=%s\\n' \"\$backup\"\s+git status --short --branch\s+git rev-parse HEAD\s+git config user\.name\s+git config user\.email$",
         r"^set -euo pipefail\s+REPO=/home/pfkagent/dev/frankenbeast\s+WT=/home/pfkagent/dev/resolve-wt/issue-\d+\s+BR=resolve/issue-\d+[-/\w.]+\s+cd \"\$REPO\"\s+git fetch origin main --prune\s+if \[ -d \"\$WT/\.git\" \] \|\| \[ -f \"\$WT/\.git\" \]; then\s+echo \"worktree exists\"\s+else\s+mkdir -p \"\$\(dirname \"\$WT\"\)\"\s+git worktree add -b \"\$BR\" \"\$WT\" origin/main\s+fi\s+cd \"\$WT\"\s+git config user\.name \"David Mendez\"\s+git config user\.email \"me@davidmendez\.dev\"\s+git status --short --branch(?:\s+printf .*?node -e \"const p=require\('\./package\.json'\); console\.log\(p\.packageManager\); console\.log\(JSON\.stringify\(p\.scripts,null,2\)\)\")?$",
         r"^set -euo pipefail\s+rm -f packages/franken-web/src/pages/beast-dispatch-page\.tsx \\\\\s+packages/franken-web/src/pages/beast-dispatch-page\.test\.tsx \\\\\s+packages/franken-web/tests/pages/beast-dispatch-page\.test\.tsx$",
-        r"^python3 /home/pfkagent/\.hermes/scripts/frankenbeast_codex_resolve_comments\.py --repo djm204/frankenbeast --pr \d+ --comment-ids( \d{8,})+ --retrigger$",
+        rf"^python3 {re.escape(str(Path(__file__).with_name('frankenbeast_codex_resolve_comments.py')))} --repo djm204/frankenbeast --pr \d+ --comment-ids( \d{{8,}})+ --retrigger$",
         # Canonical raw Codex review trigger. This is allowlisted as an exact
         # approval-gated side effect, but request_for_task suppresses it while
         # primary/Spark daily budget is exhausted.

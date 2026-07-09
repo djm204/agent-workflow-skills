@@ -303,6 +303,8 @@ def extract_command_and_workdir(data: dict[str, Any], fallback_cwd: Path) -> tup
         # backticks/fences, e.g. "Exact blocked command:\n  git push ...".
         r"Exact blocked command:\s*\n\s*([^\n`]+)",
         r"exact command is\s*`([^`]+)`",
+        r"blocked by approval\s+(?:on\s+)?(?:the\s+)?exact command\s*`([^`]+)`",
+        r"blocked by approval\s+for\s*`([^`]+)`",
         r"exact command blocked pending approval was:\s*```(?:bash)?\s*([^`]+?)\s*```",
         r"request approval for this exact [^:]+command:\s*```(?:bash)?\s*([^`]+?)\s*```",
         r"approval blocker is missing an allowlisted exact command.*?```(?:bash)?\s*([^`]+?)\s*```",

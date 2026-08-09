@@ -1,6 +1,6 @@
 # Repeatable user-local PM Swarm plugin pattern
 
-When extending Hermes behavior for a user's own orchestration workflow, do not patch Hermes source/worktrees as the first path. Source edits under `~/.hermes/hermes-agent` or repo worktrees can be clobbered by update and are not repeatable for the live profile.
+Session learning: when extending Hermes behavior for this user's own orchestration workflow, do not patch Hermes source/worktrees as the first path. Source edits under `~/.hermes/hermes-agent` or repo worktrees can be clobbered by update and are not repeatable for the live profile.
 
 Preferred durable shape:
 
